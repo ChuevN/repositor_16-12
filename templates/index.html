@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScooterRent - Главная</title>
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <!-- Шапка -->
+    <header class="main-header">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <a href="/web" class="logo-link">
+                    <i class="fas fa-scooter"></i>
+                    <h1>Scooter<span>Rent</span></h1>
+                </a>
+            </div>
+
+            <div class="nav-links">
+                <a href="/web" class="nav-link active">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Карта</span>
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-history"></i>
+                    <span>История поездок</span>
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-user"></i>
+                    <span>Профиль</span>
+                </a>
+                <a href="#" class="nav-link" id="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Выйти</span>
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Основной контент -->
+    <main class="main-container">
+        <!-- Левая панель -->
+        <aside class="sidebar">
+            <!-- Выбор города -->
+            <div class="city-selector card">
+                <h3><i class="fas fa-city"></i> Выберите город</h3>
+                <div class="select-wrapper">
+                    <select id="citySelect" class="city-select">
+                        <option value="moscow">Москва</option>
+                        <option value="saint-petersburg">Санкт-Петербург</option>
+                        <option value="kazan">Казань</option>
+                        <option value="ekaterinburg">Екатеринбург</option>
+                        <option value="novosibirsk">Новосибирск</option>
+                        <option value="sochi">Сочи</option>
+                    </select>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="city-info">
+                    <p class="city-name" id="currentCity">Москва</p>
+                    <p class="city-stats">
+                        <i class="fas fa-scooter"></i>
+                        <span id="totalScooters">245</span> самокатов доступно
+                    </p>
+                </div>
+            </div>
+
+            <!-- Фильтры -->
+            <div class="filters card">
+                <h3><i class="fas fa-filter"></i> Фильтры</h3>
+                <div class="filter-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="filterAvailable" checked>
+                        <span class="checkmark"></span>
+                        <span>Только доступные</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="filterCharged">
+                        <span class="checkmark"></span>
+                        <span>Только заряженные</span>
+                    </label>
+                </div>
+
+                <div class="range-filter">
+                    <label>Радиус поиска: <span id="radiusValue">2 км</span></label>
+                    <input type="range" id="radiusRange" min="0.5" max="5" step="0.5" value="2">
+                </div>
+            </div>
+
+            <!-- Список точек -->
+            <div class="points-list card">
+                <div class="points-header">
+                    <h3><i class="fas fa-map-pin"></i> Точки проката</h3>
+                    <span class="points-count" id="pointsCount">12 точек</span>
+                </div>
+
+                <div class="points-container" id="pointsContainer">
+                    <!-- Точки будут загружаться здесь -->
+                    <div class="loading-points">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Загрузка точек...</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Карта -->
+        <section class="map-section">
+            <div class="map-header">
+                <h2><i class="fas fa-map"></i> Карта самокатов</h2>
+                <div class="map-actions">
+                    <button class="btn-action" id="locateMe">
+                        <i class="fas fa-location-arrow"></i>
+                        <span>Мое местоположение</span>
+                    </button>
+                    <button class="btn-action" id="refreshMap">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Обновить карту</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="map-container">
+                <div id="map"></div>
+                <!-- Заглушка при загрузке -->
+                <div class="map-placeholder" id="mapPlaceholder">
+                    <div class="placeholder-content">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <h3>Загрузка карты...</h3>
+                        <p>Пожалуйста, подождите, пока загружаются данные о самокатах</p>
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Статистика -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon available">
+                        <i class="fas fa-scooter"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Доступно сейчас</h4>
+                        <p class="stat-value" id="availableNow">187</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon in-use">
+                        <i class="fas fa-running"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>В аренде</h4>
+                        <p class="stat-value" id="inUse">58</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon charging">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>На зарядке</h4>
+                        <p class="stat-value" id="charging">23</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon points">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Точек проката</h4>
+                        <p class="stat-value" id="pointsTotal">12</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Боковая панель деталей -->
+        <aside class="details-sidebar">
+            <div class="details-header">
+                <h3><i class="fas fa-info-circle"></i> Детали</h3>
+                <button class="close-details" id="closeDetails">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="details-content" id="detailsContent">
+                <div class="no-selection">
+                    <i class="fas fa-mouse-pointer"></i>
+                    <h4>Выберите точку на карте</h4>
+                    <p>Нажмите на маркер или точку в списке, чтобы увидеть подробную информацию</p>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Модальное окно -->
+    <div class="modal" id="pointModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Детали точки проката</h3>
+                <button class="close-modal" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Контент модального окна -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelRent">Отмена</button>
+                <button class="btn-primary" id="confirmRent">Арендовать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Уведомления -->
+    <div id="notification" class="notification hidden"></div>
+
+    <script src="/static/js/index.js"></script>
+</body>
+</html>
